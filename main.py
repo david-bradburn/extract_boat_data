@@ -7,24 +7,51 @@ boats_src = "src\\boats26.csv"
 df_contacts = pd.read_csv(contacts_src)
 df_boats = pd.read_csv(boats_src)
 
-valid_ids = []
+contacts_dict = {}
 
-def check_if_in_array(arr: list, item):
-  if item in arr:
-    raise Exception(f"uid: {item} already in list")
+def check_if_in_dict(contacts_dict: dict, item):
+  if item in contacts_dict:
+    raise Exception(f"uid: {item} already in dict")
   else:
     return False
+
+m_dict = {"Ordinary": "O",
+          "Ordinary H/R": "O",
+          "Ordinary Family": "OF",
+          "Ordinary Family H/R": "OF",
+          "Associate": "A",
+          "Associate H/R": "A",
+          "Associate Family": "A/F",
+          "Associate Family H/R": "A/F",
+          "Cadet": "Cdt",
+          "Country": "C",
+          "Country Family": "CF",
+          "Life": "L",
+          "Honorary": "H",
+          "Student": "S"}
 
 for index, row in df_contacts.iterrows():
   assert(row["membership_status"] == "Active")
   uid = row["uid"]
-  if not check_if_in_array(valid_ids, uid):
-    valid_ids.append(row["uid"])
+  fname = row["first_name"]
+  sname = row["last_name"]
+  mtype = row["membership_types"]
+  bname = row["boat_name"]
+  city = row["city"]
+  county = row["county"]
+  mnum = row["phone"] if row["mobile"] == "nan" or row["mobile"] == "" else row["mobile"]
+  if mtype not in m_dict:
+    translated_mtype = ""
+    print(f"[WARNING] Member {fname} {sname} has invalid membership type of {mtype}")
+  else:
+    translated_mtype = m_dict[mtype]
+  if not check_if_in_dict(contacts_dict, uid):
+    contacts_dict[uid] = [fname, sname, translated_mtype, bname, city, county, str(mnum)]
 
 # print(valid_ids)
 count = 0
 
-header = "Name, LOA, Beam, Vessel Type, Design, Sail Number, Designer\n"
+header = "Name, LOA, Beam, Vessel Type, Design, Sail Number, Designer, First Name, Surname, Membership Type, Boat Name, City, County, Phone Number\n"
 fd = open("out.csv", "w")
 fd.write(header)
 
@@ -41,15 +68,18 @@ for index, row in df_boats.iterrows():
 
   assert(len(con_id) > 0)
   for id in con_id.split("/"):
-    if int(id) not in valid_ids:
+    if int(id) not in contacts_dict:
       continue
     count += 1
-    boat_data = f"{boat_name}, {boat_loa}, {boat_beam}, {boat_vtype}, {boat_design}, {boat_sailno}, {boat_designer}"
+    # print(contacts_dict.values())
+    boat_data = f"{boat_name}, {boat_loa}, {boat_beam}, {boat_vtype}, {boat_design}, {boat_sailno}, {boat_designer}, " + ", ".join(contacts_dict[int(id)])
     # print(f"{boat_name} {boat_loa} {boat_beam} {boat_vtype} {boat_design} {boat_sailno} {boat_designer}")
     fd.write(f"{boat_data}\n")
     break
   else:
-    print("Boat not active")
+    # 3
+    ...
+
 
 fd.close()
 
