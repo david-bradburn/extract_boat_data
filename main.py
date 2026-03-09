@@ -1,7 +1,5 @@
 
 import pandas as pd
-from datetime import datetime
-from dateutil.relativedelta import relativedelta
 
 contacts_src = "src\contacts26.csv"
 boats_src = "src\\boats26.csv"
@@ -47,9 +45,11 @@ for index, row in df_contacts.iterrows():
   city = row["city"]
   county = row["county"]
   memstart = row["membership_started"]
+  mob = row["mobile"]
+  test = pd.isna(mob)
 
-  mnum = row["phone"] if row["mobile"] == "nan" or row["mobile"] == "" else row["mobile"]
-  year_started = memstart.split("/")[2]
+  mnum = row["phone"] if test else row["mobile"]
+  year_started = memstart.split("-")[0]
 
   if mtype not in m_dict:
     translated_mtype = ""
@@ -60,7 +60,7 @@ for index, row in df_contacts.iterrows():
   if not check_if_in_dict(contacts_dict, uid):
     contacts_dict[uid] = [fname, sname, translated_mtype, bname, city, county, str(mnum)]
 
-  fd_mem.write(f"{year_started}, {fname}, {sname}, {translated_mtype}, {bname} {bname2}, {city}, {county}\n")
+  fd_mem.write(f"{year_started}, {fname}, {sname}, {translated_mtype}, {bname} {bname2}, {city}, {county}, {mnum}\n")
 fd_mem.close()
 
 
